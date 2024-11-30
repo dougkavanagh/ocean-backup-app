@@ -1,0 +1,20 @@
+{
+  "name": "ocean_backup",
+  "version": "1.0.0",
+  "description": "Ocean referral backup utility",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "dev": "npm run build && npm start"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "electron": "^27.1.2",
+    "typescript": "^5.3.2"
+  }
+}

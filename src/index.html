@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ocean Backup</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      input,
+      textarea {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button {
+        padding: 8px 16px;
+        background-color: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0052a3;
+      }
+      .drop-zone {
+        border: 2px dashed #ccc;
+        padding: 20px;
+        text-align: center;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Ocean Backup Utility</h1>
+
+      <div class="form-group">
+        <h2>API Credentials</h2>
+        <input type="text" id="clientId" placeholder="Ocean Client ID" />
+        <input
+          type="password"
+          id="clientSecret"
+          placeholder="Ocean Client Secret"
+        />
+        <button onclick="saveCredentials()">Save Credentials</button>
+      </div>
+
+      <div class="form-group">
+        <h2>Referral UUIDs</h2>
+        <div class="drop-zone" id="dropZone">
+          Drop referral reference file here or paste referral references below
+        </div>
+        <textarea
+          id="refList"
+          placeholder="Enter Referral References (one per line)"
+          rows="5"
+        ></textarea>
+        <button onclick="downloadReferrals()">Download Referrals</button>
+      </div>
+
+      <div id="status"></div>
+    </div>
+
+    <script>
+      const { ipcRenderer } = require("electron");
+
+      // Load saved credentials
+      ipcRenderer.send("load-credentials");
+      ipcRenderer.on("credentials-loaded", (event, credentials) => {
+        if (credentials) {
+          document.getElementById("clientId").value = credentials.clientId;
+          document.getElementById("clientSecret").value =
+            credentials.clientSecret;
+        }
+      });
+
+      function saveCredentials() {
+        const credentials = {
+          clientId: document.getElementById("clientId").value.trim(),
+          clientSecret: document.getElementById("clientSecret").value.trim(),
+        };
+        ipcRenderer.send("save-credentials", credentials);
+      }
+
+      function downloadReferrals() {
+        const refText = document.getElementById("refList").value;
+        const refs = refText
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+
+        if (refs.length === 0) {
+          updateStatus("No references provided");
+          return;
+        }
+
+        ipcRenderer.send("download-referrals", refs);
+      }
+
+      function updateStatus(message) {
+        document.getElementById("status").textContent = message;
+      }
+
+      // File drop handling
+      const dropZone = document.getElementById("dropZone");
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            document.getElementById("refList").value = e.target.result;
+          };
+          reader.readAsText(file);
+        }
+      });
+
+      // Status updates
+      ipcRenderer.on("referral-downloaded", (event, { ref, filePath }) => {
+        updateStatus(`Downloaded referral ${ref} to ${filePath}`);
+      });
+
+      ipcRenderer.on("download-error", (event, error) => {
+        updateStatus(`Error: ${error}`);
+      });
+    </script>
+  </body>
+</html>

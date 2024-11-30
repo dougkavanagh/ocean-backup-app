@@ -1,0 +1,41 @@
+{
+	"version": "0.2.0",
+	"compounds": [
+		{
+			"name": "Debug Main + Watch",
+			"configurations": [
+				"Debug Main Process",
+				"Watch TS"
+			],
+			"stopAll": true
+		}
+	],
+	"configurations": [
+		{
+			"name": "Debug Main Process",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+			"windows": {
+				"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
+			},
+			"args": [
+				"."
+			],
+			"outputCapture": "std",
+			"program": "${workspaceFolder}/dist/main.js",
+			"preLaunchTask": "tsc: build - tsconfig.json"
+		},
+		{
+			"name": "Watch TS",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": [
+				"run",
+				"watch"
+			],
+			"outputCapture": "std"
+		}
+	]
+}
