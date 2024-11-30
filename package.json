@@ -23,6 +23,7 @@
     ]
   },
   "dependencies": {
+    "csv-parse": "^5.5.3",
     "electron-store": "^8.1.0"
   },
   "devDependencies": {
