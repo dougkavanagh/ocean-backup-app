@@ -7,7 +7,20 @@
     "start": "electron .",
     "build": "tsc",
     "watch": "tsc -w",
-    "dev": "npm run build && npm start"
+    "dev": "npm run build && npm start",
+    "make": "npm run build && electron-builder -m"
+  },
+  "build": {
+    "appId": "com.dougkavanagh.oceanbackup",
+    "productName": "Ocean Backup",
+    "mac": {
+      "target": ["zip"],
+      "identity": null
+    },
+    "files": [
+      "dist/**/*",
+      "src/index.html"
+    ]
   },
   "dependencies": {
     "electron-store": "^8.1.0"
