@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog } from "electron";
 import * as path from "path";
 import Store from "electron-store";
 import * as fs from "fs";
+import { parse } from "csv-parse/sync";
 
 const oceanHost = "https://staging.cognisantmd.com";
 
@@ -10,12 +11,14 @@ interface Credentials {
   clientSecret: string;
 }
 
-let mainWindow: BrowserWindow;
-
-const store = new Store<{
+interface StoreSchema {
   credentials?: Credentials;
   outputDir?: string;
-}>();
+}
+
+let mainWindow: BrowserWindow;
+
+const store = new Store<StoreSchema>();
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -26,21 +29,12 @@ function createWindow() {
       contextIsolation: false,
     },
   });
-  // Enable debugging port for renderer process
-  app.commandLine.appendSwitch("remote-debugging-port", "9222");
-
+  
   mainWindow.loadFile(path.join(__dirname, "../src/index.html"));
 
-  // Open DevTools automatically if in development
   if (process.env.NODE_ENV === "development") {
     mainWindow.webContents.openDevTools();
   }
-
-  // Add this after creating the window
-  mainWindow.webContents.on("did-finish-load", () => {
-    debugger; // This will pause execution when hit
-    console.log("Window loaded!");
-  });
 }
 
 app.whenReady().then(createWindow);
@@ -55,6 +49,54 @@ app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
+});
+
+// File handling
+ipcMain.handle("select-input-file", async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openFile"],
+    filters: [
+      { name: "Text Files", extensions: ["txt"] },
+      { name: "CSV Files", extensions: ["csv"] }
+    ]
+  });
+  
+  if (!result.canceled && result.filePaths.length > 0) {
+    const filePath = result.filePaths[0];
+    const content = fs.readFileSync(filePath, "utf-8");
+    
+    if (path.extname(filePath) === ".csv") {
+      const records = parse(content, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true
+      });
+      // Extract referral refs from the first column
+      return records.map((record: any) => Object.values(record)[0]);
+    } else {
+      // For txt files, split by newline and filter empty lines
+      return content.split("\n").map(line => line.trim()).filter(Boolean);
+    }
+  }
+  return [];
+});
+
+// Output directory selection
+ipcMain.handle("select-output-dir", async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openDirectory"]
+  });
+  
+  if (!result.canceled && result.filePaths.length > 0) {
+    const outputDir = result.filePaths[0];
+    store.set("outputDir", outputDir);
+    return outputDir;
+  }
+  return null;
+});
+
+ipcMain.handle("get-output-dir", () => {
+  return store.get("outputDir") || app.getPath("downloads");
 });
 
 // Ocean API configuration
@@ -73,11 +115,7 @@ async function getAccessToken(): Promise<string> {
   const credentials = store.get("credentials");
   if (!credentials) throw new Error("No credentials found");
 
-  const authorization =
-    "basic " +
-    Buffer.from(credentials.clientId + ":" + credentials.clientSecret).toString(
-      "base64"
-    );
+  const authorization = "basic " + Buffer.from(credentials.clientId + ":" + credentials.clientSecret).toString("base64");
   const res = await fetch(
     oceanHost + "/svc/oauth2/token?grant_type=client_credentials",
     {
@@ -92,32 +130,50 @@ async function getAccessToken(): Promise<string> {
   return token.access_token;
 }
 
-// PDF download handling
+// PDF download handling with progress
 ipcMain.on("download-referrals", async (event, refs: string[]) => {
   try {
     const token = await getAccessToken();
     const outputDir = store.get("outputDir") || app.getPath("downloads");
+    const total = refs.length;
+    let completed = 0;
 
     for (const ref of refs) {
-      const response = await fetch(
-        oceanHost + `/svc/fhir/v1/ServiceRequest/${ref}/$letter`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      try {
+        const response = await fetch(
+          oceanHost + `/svc/fhir/v1/ServiceRequest/${ref}/$letter`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const buffer = await response.arrayBuffer();
+        const filePath = path.join(outputDir, `referral-${ref}.pdf`);
+        fs.writeFileSync(filePath, Buffer.from(buffer));
+        
+        completed++;
+        event.reply("download-progress", {
+          ref,
+          filePath,
+          progress: (completed / total) * 100,
+          total,
+          completed
+        });
+      } catch (error: any) {
+        event.reply("download-error", { ref, error: error.message });
+        // Continue with next referral even if one fails
+        completed++;
       }
-
-      const buffer = await response.arrayBuffer();
-      const filePath = path.join(outputDir, `referral-${ref}.pdf`);
-      fs.writeFileSync(filePath, Buffer.from(buffer));
-      event.reply("referral-downloaded", { ref, filePath });
     }
+    
+    event.reply("download-complete", { total, completed });
   } catch (error: any) {
-    event.reply("download-error", error.message);
+    event.reply("download-error", { error: error.message });
   }
 });
