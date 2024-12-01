@@ -6,59 +6,149 @@
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Helvetica, Arial, sans-serif;
-        padding: 20px;
+        padding: 40px 20px;
         max-width: 800px;
         margin: 0 auto;
+        line-height: 1.5;
+        color: #333;
       }
       h1 {
-        margin: 0px;
+        margin: 0 0 20px 0;
+        color: #0066cc;
+        font-size: 28px;
       }
-      h2 {
-        margin-top: 10px;
+      h3 {
+        margin: 0 0 10px 0;
+        color: #444;
       }
       .container {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 32px;
       }
       .form-group {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
+        background: #f8f9fa;
+        padding: 24px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+      }
+      .description {
+        color: #666;
+        margin-bottom: 8px;
       }
       input,
-      textarea {
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+      textarea,
+      select {
+        padding: 10px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: none;
+        border-color: #0066cc;
+        box-shadow: 0 0 0 2px rgba(0,102,204,0.1);
       }
       button {
-        padding: 8px 16px;
+        padding: 10px 16px;
         background-color: #0066cc;
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 6px;
         cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background-color 0.2s;
       }
       button:hover {
         background-color: #0052a3;
       }
       button.secondary {
-        background-color: #f0f0f0;
-        color: #333;
-        border: 1px solid #ccc;
+        background-color: #fff;
+        color: #0066cc;
+        border: 1px solid #0066cc;
       }
       button.secondary:hover {
-        background-color: #e0e0e0;
+        background-color: #f8f9fa;
       }
       #saveCredentialsBtn {
         display: none;
+        margin-top: 8px;
       }
-      .drop-zone {
-        border: 2px dashed #ccc;
-        padding: 20px;
-        text-align: center;
+      .status-container {
+        padding: 12px;
+        border-radius: 6px;
+        background-color: #f8f9fa;
+        margin-top: 16px;
+        display: none;
+      }
+      .status-container.visible {
+        display: block;
+      }
+      #progress-container {
+        margin-top: 16px;
+      }
+      progress {
+        width: 100%;
+        height: 8px;
         border-radius: 4px;
+      }
+      #progress-text {
+        font-size: 14px;
+        color: #666;
+        margin-top: 8px;
+      }
+      #results-container {
+        margin-top: 16px;
+        padding: 16px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+      }
+      #download-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 12px 0;
+      }
+      #credentialsLink {
+        color: #0066cc;
+        text-decoration: none;
+      }
+      #credentialsLink:hover {
+        text-decoration: underline;
+      }
+      .input-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      
+      .input-group label {
+        min-width: 100px;
+        flex-shrink: 0;
+      }
+      
+      .input-group input,
+      .input-group select {
+        flex: 1;
+      }
+      
+      @media (max-width: 600px) {
+        .input-group {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+        }
+        
+        .input-group label {
+          min-width: auto;
+        }
       }
     </style>
   </head>
@@ -68,67 +158,75 @@
 
       <div class="form-group">
         <h3>Credentials</h3>
-        <div>
+        <div class="description">
           Provide your Ocean site's OAuth2 credentials to enable access. You can
-          find these credentials in the Ocean Admin in the portal.
+          find these credentials in the Ocean Admin portal.
         </div>
-        <label for="oceanHost">Ocean Host:</label>
-        <select id="oceanHost" onchange="updateCredentialsLink()">
-          <option value="https://ocean.cognisantmd.com">Production</option>
-          <option value="https://staging.cognisantmd.com" selected>
-            Staging
-          </option>
-          <option value="https://test.cognisantmd.com">Test</option>
-        </select>
-        <input type="text" id="clientId" placeholder="Ocean OAuth2 Client ID" />
-        <input
-          type="password"
-          id="clientSecret"
-          placeholder="Ocean OAuth2 Client Secret"
-        />
+        
+        <div class="input-group">
+          <label for="oceanHost">Ocean Host:</label>
+          <select id="oceanHost" onchange="updateCredentialsLink()">
+            <option value="https://ocean.cognisantmd.com">Production</option>
+            <option value="https://staging.cognisantmd.com" selected>Staging</option>
+            <option value="https://test.cognisantmd.com">Test</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="clientId">Client ID:</label>
+          <input type="text" id="clientId" placeholder="Enter your Ocean OAuth2 Client ID" />
+        </div>
+        
+        <div class="input-group">
+          <label for="clientSecret">Client Secret:</label>
+          <input type="password" id="clientSecret" placeholder="Enter your Ocean OAuth2 Client Secret" />
+        </div>
+        
         <button id="saveCredentialsBtn" onclick="saveCredentials()">
           Save Credentials
         </button>
-        <a id="credentialsLink" href="#" target="_blank"
-          >Set up credentials...</a
-        >
+        <a id="credentialsLink" href="#" target="_blank">Set up credentials in Ocean Admin →</a>
       </div>
 
       <div class="form-group">
         <h3>Referrals to Download</h3>
-        <div>
+        <div class="description">
           Specify a list of referral references to download. You can export an
-          analytics file in your Ocean Admin and upload it directly here.
+          analytics file from your Ocean Admin and upload it directly here.
         </div>
+        
         <button class="secondary" onclick="selectInputFile()">
-          Select Input File
+          Upload Analytics File
         </button>
+        <div id="ref-download-result"></div>
+        
         <textarea
           id="refList"
-          placeholder="You can manually enter referral references here (one per line)"
+          placeholder="Or manually enter referral references here (one per line)"
           rows="5"
         ></textarea>
-        <div id="ref-download-result"></div>
 
-        <button class="secondary" onclick="selectDownloadDirectory()">
-          Select Download Directory
-        </button>
-        <div>
-          Download Directory:
-          <span id="download-dir">Downloads</span>
+        <div id="download-info">
+          <button class="secondary" onclick="selectDownloadDirectory()">
+            Select Download Directory
+          </button>
+          <span>Current: <strong id="download-dir">Downloads</strong></span>
         </div>
+
         <div id="progress-container" style="display: none">
           <progress id="progress-bar" value="0" max="100"></progress>
           <div id="progress-text"></div>
         </div>
+
         <div id="results-container" style="display: none">
           <h3>Download Results</h3>
           <div id="results-text"></div>
         </div>
+
         <button onclick="downloadReferrals()">Download Referrals</button>
       </div>
 
-      <div id="status"></div>
+      <div id="status" class="status-container"></div>
     </div>
 
     <script>
