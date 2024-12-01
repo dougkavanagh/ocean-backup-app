@@ -101,7 +101,6 @@ ipcMain.handle("select-output-dir", async () => {
 
   if (!result.canceled && result.filePaths.length > 0) {
     const outputDir = result.filePaths[0];
-    ensureDirectoryExists(outputDir);
     store.set("outputDir", outputDir);
     return outputDir;
   }
@@ -151,7 +150,7 @@ async function getAccessToken(): Promise<string> {
 ipcMain.on("download-referrals", async (event, refs: string[]) => {
   try {
     const token = await getAccessToken();
-    const outputDir = getOutputDirectory();
+    const outputDir = store.get("outputDir") || app.getPath("downloads");
     const total = refs.length;
     let completed = 0;
     const results = {
