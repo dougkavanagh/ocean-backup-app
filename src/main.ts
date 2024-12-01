@@ -224,8 +224,8 @@ ipcMain.on("download-referrals", async (event, refs: string[]) => {
       outputDir,
     });
   } catch (error: any) {
-    event.reply("download-error", { 
-      error: error.message || "Unknown error occurred"
+    event.reply("download-error", {
+      error: error.message || "Unknown error occurred",
     });
   }
 });
