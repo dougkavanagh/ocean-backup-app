@@ -14,7 +14,9 @@
     "appId": "com.dougkavanagh.oceanbackup",
     "productName": "Ocean Backup",
     "mac": {
-      "target": ["zip"],
+      "target": [
+        "zip"
+      ],
       "identity": null
     },
     "files": [
@@ -23,6 +25,7 @@
     ]
   },
   "dependencies": {
+    "csv-parse": "^5.6.0",
     "electron-store": "^8.1.0"
   },
   "devDependencies": {

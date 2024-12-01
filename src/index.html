@@ -60,16 +60,27 @@
         <button onclick="saveCredentials()">Save Credentials</button>
       </div>
 
+      <button onclick="selectOutputDirectory()">Select Output Directory</button>
+      <div id="output-dir">Output Directory: Downloads</div>
+
       <div class="form-group">
-        <h2>Referral UUIDs</h2>
-        <div class="drop-zone" id="dropZone">
-          Drop referral reference file here or paste referral references below
-        </div>
+        <h2>Referrals</h2>
+        <button onclick="selectInputFile()">Select Input File</button>
         <textarea
           id="refList"
           placeholder="Enter Referral References (one per line)"
           rows="5"
         ></textarea>
+        <div id="ref-download-result"></div>
+
+        <div id="progress-container" style="display: none">
+          <progress id="progress-bar" value="0" max="100"></progress>
+          <div id="progress-text"></div>
+        </div>
+        <div id="results-container" style="display: none">
+          <h3>Download Results</h3>
+          <div id="results-text"></div>
+        </div>
         <button onclick="downloadReferrals()">Download Referrals</button>
       </div>
 
@@ -99,13 +110,16 @@
 
       function downloadReferrals() {
         const refText = document.getElementById("refList").value;
-        const refs = refText
+        const manuallySpecifiedRefs = refText
           .split("\n")
           .map((line) => line.trim())
           .filter((line) => line.length > 0);
-
+        const refs = [
+          ...(window.refsToDownload || []),
+          ...manuallySpecifiedRefs,
+        ];
         if (refs.length === 0) {
-          updateStatus("No references provided");
+          updateStatus("No references provided.");
           return;
         }
 
@@ -116,34 +130,97 @@
         document.getElementById("status").textContent = message;
       }
 
-      // File drop handling
-      const dropZone = document.getElementById("dropZone");
-      dropZone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      });
-
-      dropZone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const file = e.dataTransfer.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            document.getElementById("refList").value = e.target.result;
-          };
-          reader.readAsText(file);
-        }
-      });
-
       // Status updates
       ipcRenderer.on("referral-downloaded", (event, { ref, filePath }) => {
         updateStatus(`Downloaded referral ${ref} to ${filePath}`);
       });
 
       ipcRenderer.on("download-error", (event, error) => {
-        updateStatus(`Error: ${error}`);
+        updateStatus(`Error: ${JSON.stringify(error)}`);
+      });
+      // Add these event listeners
+      ipcRenderer.on("download-progress", (event, progress) => {
+        const progressBar = document.getElementById("progress-bar");
+        const progressText = document.getElementById("progress-text");
+
+        if (progressBar && progressText) {
+          progressBar.value = progress.progress;
+          progressText.textContent = `Downloaded ${progress.completed} of ${
+            progress.total
+          } files (${Math.round(progress.progress)}%)`;
+        }
+      });
+
+      // Add button handler for output directory
+      async function selectOutputDirectory() {
+        const dir = await ipcRenderer.invoke("select-output-dir");
+        if (dir) {
+          document.getElementById(
+            "output-dir"
+          ).textContent = `Output Directory: ${dir}`;
+        }
+      }
+
+      // Add function to handle file selection
+      async function selectInputFile() {
+        try {
+          const result = await ipcRenderer.invoke("select-input-file");
+          if (!result.success) {
+            alert(`Error processing file: ${result.error}`);
+            return;
+          }
+
+          const refs = result.refs;
+          if (refs && refs.length > 0) {
+            document.getElementById(
+              "ref-download-result"
+            ).textContent = `Found ${refs.length} Referral Reference${
+              refs.length === 1 ? "" : "s"
+            }`;
+            window.refsToDownload = refs;
+          } else {
+            document.getElementById("ref-download-result").textContent =
+              "No Referral References found in file";
+          }
+        } catch (error) {
+          alert(`Error processing file: ${error.message || "Unknown error"}`);
+        }
+      }
+      // Add these event listeners
+      ipcRenderer.on("download-start", () => {
+        document.getElementById("progress-container").style.display = "block";
+        document.getElementById("results-container").style.display = "none";
+        document.getElementById("progress-text").textContent =
+          "Starting download...";
+      });
+
+      ipcRenderer.on("download-progress", (event, progress) => {
+        const progressBar = document.getElementById("progress-bar");
+        const progressText = document.getElementById("progress-text");
+
+        if (progressBar && progressText) {
+          progressBar.value = progress.progress;
+          progressText.textContent = `Downloaded ${progress.completed} of ${
+            progress.total
+          } files (${Math.round(progress.progress)}%)`;
+        }
+      });
+
+      ipcRenderer.on("download-complete", (event, results) => {
+        document.getElementById("progress-container").style.display = "none";
+        document.getElementById("results-container").style.display = "block";
+
+        const resultsText = document.getElementById("results-text");
+        let message = `Successfully downloaded ${results.successful} Referral References to ${results.outputDir}`;
+
+        if (results.failed.length > 0) {
+          message += `\n\nFailed to download ${results.failed.length} Referral References:`;
+          results.failed.forEach((failure) => {
+            message += `\nReferral Reference ${failure.ref}: ${failure.error}`;
+          });
+        }
+
+        resultsText.textContent = message;
       });
     </script>
   </body>
