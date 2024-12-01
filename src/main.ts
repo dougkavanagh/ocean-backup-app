@@ -176,6 +176,9 @@ ipcMain.on("download-referrals", async (event, refs: string[]) => {
         continue;
       }
       try {
+        if (ref.length < 10) {
+          throw new Error("Invalid referral ref: " + ref);
+        }
         const response = await fetch(
           oceanHost + `/svc/fhir/v1/ServiceRequest/${ref}/$letter`,
           {
