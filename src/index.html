@@ -67,7 +67,11 @@
       <h1>Ocean Backup Utility</h1>
 
       <div class="form-group">
-        <h3>API Credentials</h3>
+        <h3>Credentials</h3>
+        <div>
+          Provide your Ocean site's OAuth2 credentials to enable access. You can
+          find these credentials in the Ocean Admin in the portal.
+        </div>
         <label for="oceanHost">Ocean Host:</label>
         <select id="oceanHost" onchange="updateCredentialsLink()">
           <option value="https://ocean.cognisantmd.com">Production</option>
@@ -76,11 +80,11 @@
           </option>
           <option value="https://test.cognisantmd.com">Test</option>
         </select>
-        <input type="text" id="clientId" placeholder="Ocean Client ID" />
+        <input type="text" id="clientId" placeholder="Ocean OAuth2 Client ID" />
         <input
           type="password"
           id="clientSecret"
-          placeholder="Ocean Client Secret"
+          placeholder="Ocean OAuth2 Client Secret"
         />
         <button id="saveCredentialsBtn" onclick="saveCredentials()">
           Save Credentials
@@ -91,21 +95,28 @@
       </div>
 
       <div class="form-group">
-        <h3>Referrals</h3>
+        <h3>Referrals to Download</h3>
+        <div>
+          Specify a list of referral references to download. You can export an
+          analytics file in your Ocean Admin to create the list.
+        </div>
         <button class="secondary" onclick="selectInputFile()">
           Select Input File
         </button>
         <textarea
           id="refList"
-          placeholder="Enter Referral References (one per line)"
+          placeholder="You can manually enter referral references here (one per line)"
           rows="5"
         ></textarea>
         <div id="ref-download-result"></div>
 
-        <button class="secondary" onclick="selectOutputDirectory()">
-          Select Output Directory
+        <button class="secondary" onclick="selectDownloadDirectory()">
+          Select Download Directory
         </button>
-        <div id="output-dir">Output Directory: Downloads</div>
+        <div>
+          Download Directory:
+          <span id="download-dir">Downloads</span>
+        </div>
         <div id="progress-container" style="display: none">
           <progress id="progress-bar" value="0" max="100"></progress>
           <div id="progress-text"></div>
@@ -237,11 +248,11 @@
       });
 
       // Add button handler for output directory
-      async function selectOutputDirectory() {
-        const dir = await ipcRenderer.invoke("select-output-dir");
+      async function selectDownloadDirectory() {
+        const dir = await ipcRenderer.invoke("select-download-dir");
         if (dir) {
           document.getElementById(
-            "output-dir"
+            "download-dir"
           ).textContent = `Output Directory: ${dir}`;
         }
       }
