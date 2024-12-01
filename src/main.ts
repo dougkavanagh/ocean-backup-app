@@ -19,6 +19,17 @@ function ensureDirectoryExists(dirPath: string): void {
   }
 }
 
+// Add a function to check if referral file exists
+function findExistingReferralFile(subDir: string, ref: string): string | null {
+  try {
+    const files = fs.readdirSync(subDir);
+    const existingFile = files.find(file => file.startsWith(`${ref}-`));
+    return existingFile ? path.join(subDir, existingFile) : null;
+  } catch (error) {
+    return null;
+  }
+}
+
 // Update the output directory handler to create the directory
 ipcMain.handle("select-output-dir", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
@@ -58,20 +69,31 @@ ipcMain.on("download-referrals", async (event, refs: string[]) => {
           throw new Error("Invalid Referral Reference format");
         }
 
-        const buffer = await downloadReferral(ref, token);
-        
         // Create year/month subfolder
         const date = new Date();
         const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
         const subDir = path.join(outputDir, yearMonth);
         ensureDirectoryExists(subDir);
-        
-        // Save file with timestamp
-        const timestamp = date.toISOString().replace(/[:.]/g, "-");
-        const filePath = path.join(subDir, `${ref}-${timestamp}.pdf`);
-        fs.writeFileSync(filePath, Buffer.from(buffer));
-        
-        results.push({ ref, success: true, filePath });
+
+        // Check if file already exists
+        const existingFile = findExistingReferralFile(subDir, ref);
+        if (existingFile) {
+          results.push({ 
+            ref, 
+            success: true, 
+            filePath: existingFile,
+            skipped: true 
+          });
+        } else {
+          const buffer = await downloadReferral(ref, token);
+          
+          // Save file with timestamp
+          const timestamp = date.toISOString().replace(/[:.]/g, "-");
+          const filePath = path.join(subDir, `${ref}-${timestamp}.pdf`);
+          fs.writeFileSync(filePath, Buffer.from(buffer));
+          
+          results.push({ ref, success: true, filePath });
+        }
       } catch (error: any) {
         results.push({ 
           ref, 
@@ -91,11 +113,13 @@ ipcMain.on("download-referrals", async (event, refs: string[]) => {
     
     const successful = results.filter(r => r.success);
     const failed = results.filter(r => !r.success);
+    const skipped = results.filter(r => r.success && r.skipped);
     
     event.reply("download-complete", {
       total,
       completed,
       successful: successful.length,
+      skipped: skipped.length,
       failed: failed.map(f => ({ ref: f.ref, error: f.error })),
       outputDir
     });
