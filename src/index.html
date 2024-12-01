@@ -73,11 +73,6 @@
         </button>
       </div>
 
-      <button class="secondary" onclick="selectOutputDirectory()">
-        Select Output Directory
-      </button>
-      <div id="output-dir">Output Directory: Downloads</div>
-
       <div class="form-group">
         <h2>Referrals</h2>
         <button class="secondary" onclick="selectInputFile()">
@@ -90,6 +85,10 @@
         ></textarea>
         <div id="ref-download-result"></div>
 
+        <button class="secondary" onclick="selectOutputDirectory()">
+          Select Output Directory
+        </button>
+        <div id="output-dir">Output Directory: Downloads</div>
         <div id="progress-container" style="display: none">
           <progress id="progress-bar" value="0" max="100"></progress>
           <div id="progress-text"></div>
