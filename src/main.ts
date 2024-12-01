@@ -93,7 +93,7 @@ ipcMain.handle("select-input-file", async () => {
   }
 });
 
-// Output directory selection
+// Update the output directory handler to create the directory
 ipcMain.handle("select-output-dir", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ["openDirectory"],
@@ -101,6 +101,7 @@ ipcMain.handle("select-output-dir", async () => {
 
   if (!result.canceled && result.filePaths.length > 0) {
     const outputDir = result.filePaths[0];
+    ensureDirectoryExists(outputDir);
     store.set("outputDir", outputDir);
     return outputDir;
   }
@@ -150,7 +151,7 @@ async function getAccessToken(): Promise<string> {
 ipcMain.on("download-referrals", async (event, refs: string[]) => {
   try {
     const token = await getAccessToken();
-    const outputDir = store.get("outputDir") || app.getPath("downloads");
+    const outputDir = getOutputDirectory();
     const total = refs.length;
     let completed = 0;
     const results = {
@@ -195,8 +196,6 @@ ipcMain.on("download-referrals", async (event, refs: string[]) => {
         completed++;
         results.successful.push(ref);
         event.reply("download-progress", {
-          ref,
-          filePath,
           progress: (completed / total) * 100,
           total,
           completed,
@@ -226,6 +225,8 @@ ipcMain.on("download-referrals", async (event, refs: string[]) => {
       outputDir,
     });
   } catch (error: any) {
-    event.reply("download-error", { error: error.message });
+    event.reply("download-error", { 
+      error: error.message || "Unknown error occurred"
+    });
   }
 });
