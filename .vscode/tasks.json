@@ -12,7 +12,12 @@
 				"$tsc"
 			],
 			"label": "npm: build",
-			"detail": "tsc"
+			"detail": "tsc",
+			"options": {
+				"env": {
+					"ELECTRON_ICON": "${workspaceFolder}/icons/icon.ico"
+				}
+			}
 		}
 	]
 }

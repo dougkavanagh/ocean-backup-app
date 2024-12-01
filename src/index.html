@@ -37,6 +37,17 @@
       button:hover {
         background-color: #0052a3;
       }
+      button.secondary {
+        background-color: #f0f0f0;
+        color: #333;
+        border: 1px solid #ccc;
+      }
+      button.secondary:hover {
+        background-color: #e0e0e0;
+      }
+      #saveCredentialsBtn {
+        display: none;
+      }
       .drop-zone {
         border: 2px dashed #ccc;
         padding: 20px;
@@ -57,15 +68,21 @@
           id="clientSecret"
           placeholder="Ocean Client Secret"
         />
-        <button onclick="saveCredentials()">Save Credentials</button>
+        <button id="saveCredentialsBtn" onclick="saveCredentials()">
+          Save Credentials
+        </button>
       </div>
 
-      <button onclick="selectOutputDirectory()">Select Output Directory</button>
+      <button class="secondary" onclick="selectOutputDirectory()">
+        Select Output Directory
+      </button>
       <div id="output-dir">Output Directory: Downloads</div>
 
       <div class="form-group">
         <h2>Referrals</h2>
-        <button onclick="selectInputFile()">Select Input File</button>
+        <button class="secondary" onclick="selectInputFile()">
+          Select Input File
+        </button>
         <textarea
           id="refList"
           placeholder="Enter Referral References (one per line)"
@@ -97,6 +114,51 @@
           document.getElementById("clientId").value = credentials.clientId;
           document.getElementById("clientSecret").value =
             credentials.clientSecret;
+          originalCredentials = {
+            clientId: credentials.clientId,
+            clientSecret: credentials.clientSecret,
+          };
+        }
+      });
+
+      // Add input change listeners to show/hide save button
+      const credentialInputs = ["clientId", "clientSecret"];
+      let originalCredentials = {
+        clientId: "",
+        clientSecret: "",
+      };
+
+      credentialInputs.forEach((id) => {
+        document
+          .getElementById(id)
+          .addEventListener("input", checkCredentialChanges);
+      });
+
+      function checkCredentialChanges() {
+        const currentCredentials = {
+          clientId: document.getElementById("clientId").value,
+          clientSecret: document.getElementById("clientSecret").value,
+        };
+
+        const hasChanges =
+          currentCredentials.clientId !== originalCredentials.clientId ||
+          currentCredentials.clientSecret !== originalCredentials.clientSecret;
+
+        document.getElementById("saveCredentialsBtn").style.display = hasChanges
+          ? "block"
+          : "none";
+      }
+
+      // Update the credentials loaded handler to set original values
+      ipcRenderer.on("credentials-loaded", (event, credentials) => {
+        if (credentials) {
+          document.getElementById("clientId").value = credentials.clientId;
+          document.getElementById("clientSecret").value =
+            credentials.clientSecret;
+          originalCredentials = {
+            clientId: credentials.clientId,
+            clientSecret: credentials.clientSecret,
+          };
         }
       });
 
@@ -106,6 +168,8 @@
           clientSecret: document.getElementById("clientSecret").value.trim(),
         };
         ipcRenderer.send("save-credentials", credentials);
+        originalCredentials = { ...credentials };
+        document.getElementById("saveCredentialsBtn").style.display = "none";
       }
 
       function downloadReferrals() {
@@ -211,8 +275,10 @@
         document.getElementById("results-container").style.display = "block";
 
         const resultsText = document.getElementById("results-text");
-        let message = `Successfully downloaded ${results.successful} Referral References to ${results.outputDir}`;
-
+        let message = ``;
+        if (results.successful > 0) {
+          message += `Successfully downloaded ${results.successful} Referral References to ${results.outputDir}`;
+        }
         if (results.failed.length > 0) {
           message += `\n\nFailed to download ${results.failed.length} Referral References:`;
           results.failed.forEach((failure) => {

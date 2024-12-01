@@ -11,7 +11,7 @@
     "make": "npm run build && electron-builder -m"
   },
   "build": {
-    "appId": "com.dougkavanagh.oceanbackup",
+    "appId": "com.oceanmd.oceanbackupapp",
     "productName": "Ocean Backup",
     "mac": {
       "target": [
