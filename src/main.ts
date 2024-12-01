@@ -92,8 +92,8 @@ ipcMain.handle("select-input-file", async () => {
   }
 });
 
-// Update the output directory handler to create the directory
-ipcMain.handle("select-output-dir", async () => {
+// Update the download directory handler to create the directory
+ipcMain.handle("select-download-dir", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ["openDirectory"],
   });

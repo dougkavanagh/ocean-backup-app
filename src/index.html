@@ -98,7 +98,7 @@
         <h3>Referrals to Download</h3>
         <div>
           Specify a list of referral references to download. You can export an
-          analytics file in your Ocean Admin to create the list.
+          analytics file in your Ocean Admin and upload it directly here.
         </div>
         <button class="secondary" onclick="selectInputFile()">
           Select Input File
@@ -247,13 +247,11 @@
         }
       });
 
-      // Add button handler for output directory
+      // Add button handler for download directory
       async function selectDownloadDirectory() {
         const dir = await ipcRenderer.invoke("select-download-dir");
         if (dir) {
-          document.getElementById(
-            "download-dir"
-          ).textContent = `Output Directory: ${dir}`;
+          document.getElementById("download-dir").textContent = `${dir}`;
         }
       }
 
@@ -276,7 +274,7 @@
             window.refsToDownload = refs;
           } else {
             document.getElementById("ref-download-result").textContent =
-              "No Referral References found in file";
+              "No referral references found in file";
           }
         } catch (error) {
           alert(`Error processing file: ${error.message || "Unknown error"}`);
