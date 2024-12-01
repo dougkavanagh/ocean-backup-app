@@ -18,6 +18,13 @@
 					"ELECTRON_ICON": "${workspaceFolder}/icons/icon.ico"
 				}
 			}
+		},
+		{
+			"type": "npm",
+			"script": "make",
+			"problemMatcher": [],
+			"label": "npm: make",
+			"detail": "electron-forge make"
 		}
 	]
 }
