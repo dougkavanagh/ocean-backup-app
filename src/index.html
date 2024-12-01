@@ -68,6 +68,14 @@
 
       <div class="form-group">
         <h3>API Credentials</h3>
+        <label for="oceanHost">Ocean Host:</label>
+        <select id="oceanHost" onchange="updateCredentialsLink()">
+          <option value="https://ocean.cognisantmd.com">Production</option>
+          <option value="https://staging.cognisantmd.com" selected>
+            Staging
+          </option>
+          <option value="https://test.cognisantmd.com">Test</option>
+        </select>
         <input type="text" id="clientId" placeholder="Ocean Client ID" />
         <input
           type="password"
@@ -77,6 +85,9 @@
         <button id="saveCredentialsBtn" onclick="saveCredentials()">
           Save Credentials
         </button>
+        <a id="credentialsLink" href="#" target="_blank"
+          >Set up credentials...</a
+        >
       </div>
 
       <div class="form-group">
@@ -124,17 +135,22 @@
 
       // Load saved credentials
       ipcRenderer.send("load-credentials");
-      ipcRenderer.on("credentials-loaded", (event, credentials) => {
-        if (credentials) {
-          document.getElementById("clientId").value = credentials.clientId;
-          document.getElementById("clientSecret").value =
-            credentials.clientSecret;
-          originalCredentials = {
-            clientId: credentials.clientId,
-            clientSecret: credentials.clientSecret,
-          };
+      ipcRenderer.on(
+        "credentials-loaded",
+        (event, { credentials, oceanHost }) => {
+          if (credentials) {
+            console.log(credentials.clientId);
+            document.getElementById("clientId").value = credentials.clientId;
+            document.getElementById("clientSecret").value =
+              credentials.clientSecret;
+            originalCredentials = {
+              clientId: credentials.clientId,
+              clientSecret: credentials.clientSecret,
+            };
+          }
+          document.getElementById("oceanHost").value = oceanHost;
         }
-      });
+      );
 
       // Add input change listeners to show/hide save button
       const credentialInputs = ["clientId", "clientSecret"];
@@ -164,23 +180,13 @@
           : "none";
       }
 
-      // Update the credentials loaded handler to set original values
-      ipcRenderer.on("credentials-loaded", (event, credentials) => {
-        if (credentials) {
-          document.getElementById("clientId").value = credentials.clientId;
-          document.getElementById("clientSecret").value =
-            credentials.clientSecret;
-          originalCredentials = {
-            clientId: credentials.clientId,
-            clientSecret: credentials.clientSecret,
-          };
-        }
-      });
-
       function saveCredentials() {
         const credentials = {
-          clientId: document.getElementById("clientId").value.trim(),
-          clientSecret: document.getElementById("clientSecret").value.trim(),
+          credentials: {
+            clientId: document.getElementById("clientId").value.trim(),
+            clientSecret: document.getElementById("clientSecret").value.trim(),
+          },
+          oceanHost: document.getElementById("oceanHost").value,
         };
         ipcRenderer.send("save-credentials", credentials);
         originalCredentials = { ...credentials };

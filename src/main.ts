@@ -111,11 +111,14 @@ ipcMain.handle("get-output-dir", () => {
 });
 
 // Ocean API configuration
-ipcMain.on("save-credentials", async (event, data: { credentials: Credentials; oceanHost: string }) => {
-  store.set("credentials", data.credentials);
-  store.set("oceanHost", data.oceanHost);
-  event.reply("credentials-saved");
-});
+ipcMain.on(
+  "save-credentials",
+  async (event, data: { credentials: Credentials; oceanHost: string }) => {
+    store.set("credentials", data.credentials);
+    store.set("oceanHost", data.oceanHost);
+    event.reply("credentials-saved");
+  }
+);
 
 ipcMain.on("load-credentials", (event) => {
   const credentials = store.get("credentials");
@@ -153,7 +156,8 @@ ipcMain.on("download-referrals", async (event, refs: string[]) => {
   try {
     const token = await getAccessToken();
     const outputDir = store.get("outputDir") || app.getPath("downloads");
-    const oceanHost = store.get("oceanHost") || "https://staging.cognisantmd.com";
+    const oceanHost =
+      store.get("oceanHost") || "https://staging.cognisantmd.com";
     const total = refs.length;
     let completed = 0;
     const results = {
