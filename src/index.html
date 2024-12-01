@@ -10,6 +10,12 @@
         max-width: 800px;
         margin: 0 auto;
       }
+      h1 {
+        margin: 0px;
+      }
+      h2 {
+        margin-top: 10px;
+      }
       .container {
         display: flex;
         flex-direction: column;
@@ -61,7 +67,7 @@
       <h1>Ocean Backup Utility</h1>
 
       <div class="form-group">
-        <h2>API Credentials</h2>
+        <h3>API Credentials</h3>
         <input type="text" id="clientId" placeholder="Ocean Client ID" />
         <input
           type="password"
@@ -74,7 +80,7 @@
       </div>
 
       <div class="form-group">
-        <h2>Referrals</h2>
+        <h3>Referrals</h3>
         <button class="secondary" onclick="selectInputFile()">
           Select Input File
         </button>
@@ -276,10 +282,10 @@
         const resultsText = document.getElementById("results-text");
         let message = ``;
         if (results.successful > 0) {
-          message += `Successfully downloaded ${results.successful} Referral References to ${results.outputDir}`;
+          message += `Successfully downloaded ${results.successful} to ${results.outputDir}`;
         }
         if (results.failed.length > 0) {
-          message += `\n\nFailed to download ${results.failed.length} Referral References:`;
+          message += `\n\nFailed to download ${results.failed.length}:`;
           results.failed.forEach((failure) => {
             message += `\nReferral Reference ${failure.ref}: ${failure.error}`;
           });
