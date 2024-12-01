@@ -22,7 +22,7 @@ const store = new Store<StoreSchema>();
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 700,
-    height: 850,
+    height: 1200,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,

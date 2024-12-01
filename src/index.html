@@ -52,7 +52,7 @@
       select:focus {
         outline: none;
         border-color: #0066cc;
-        box-shadow: 0 0 0 2px rgba(0,102,204,0.1);
+        box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
       }
       button {
         padding: 10px 16px;
@@ -128,24 +128,24 @@
         align-items: center;
         gap: 12px;
       }
-      
+
       .input-group label {
         min-width: 100px;
         flex-shrink: 0;
       }
-      
+
       .input-group input,
       .input-group select {
         flex: 1;
       }
-      
+
       @media (max-width: 600px) {
         .input-group {
           flex-direction: column;
           align-items: stretch;
           gap: 8px;
         }
-        
+
         .input-group label {
           min-width: auto;
         }
@@ -162,30 +162,42 @@
           Provide your Ocean site's OAuth2 credentials to enable access. You can
           find these credentials in the Ocean Admin portal.
         </div>
-        
+
         <div class="input-group">
           <label for="oceanHost">Ocean Host:</label>
           <select id="oceanHost" onchange="updateCredentialsLink()">
             <option value="https://ocean.cognisantmd.com">Production</option>
-            <option value="https://staging.cognisantmd.com" selected>Staging</option>
+            <option value="https://staging.cognisantmd.com" selected>
+              Staging
+            </option>
             <option value="https://test.cognisantmd.com">Test</option>
           </select>
         </div>
-        
+
         <div class="input-group">
           <label for="clientId">Client ID:</label>
-          <input type="text" id="clientId" placeholder="Enter your Ocean OAuth2 Client ID" />
+          <input
+            type="text"
+            id="clientId"
+            placeholder="Enter your Ocean OAuth2 Client ID"
+          />
         </div>
-        
+
         <div class="input-group">
           <label for="clientSecret">Client Secret:</label>
-          <input type="password" id="clientSecret" placeholder="Enter your Ocean OAuth2 Client Secret" />
+          <input
+            type="password"
+            id="clientSecret"
+            placeholder="Enter your Ocean OAuth2 Client Secret"
+          />
         </div>
-        
+
         <button id="saveCredentialsBtn" onclick="saveCredentials()">
           Save Credentials
         </button>
-        <a id="credentialsLink" href="#" target="_blank">Set up credentials in Ocean Admin →</a>
+        <a id="credentialsLink" href="#" target="_blank"
+          >Set up credentials in Ocean Admin →</a
+        >
       </div>
 
       <div class="form-group">
@@ -194,12 +206,12 @@
           Specify a list of referral references to download. You can export an
           analytics file from your Ocean Admin and upload it directly here.
         </div>
-        
+
         <button class="secondary" onclick="selectInputFile()">
           Upload Analytics File
         </button>
         <div id="ref-download-result"></div>
-        
+
         <textarea
           id="refList"
           placeholder="Or manually enter referral references here (one per line)"
@@ -207,10 +219,13 @@
         ></textarea>
 
         <div id="download-info">
+          <span
+            >Download Directory:
+            <strong id="download-dir">Downloads</strong></span
+          >
           <button class="secondary" onclick="selectDownloadDirectory()">
-            Select Download Directory
+            Select
           </button>
-          <span>Current: <strong id="download-dir">Downloads</strong></span>
         </div>
 
         <div id="progress-container" style="display: none">
