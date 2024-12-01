@@ -4,8 +4,6 @@ import Store from "electron-store";
 import * as fs from "fs";
 import { parse } from "csv-parse/sync";
 
-const oceanHost = "https://staging.cognisantmd.com";
-
 interface Credentials {
   clientId: string;
   clientSecret: string;
@@ -14,6 +12,7 @@ interface Credentials {
 interface StoreSchema {
   credentials?: Credentials;
   outputDir?: string;
+  oceanHost?: string;
 }
 
 let mainWindow: BrowserWindow;
@@ -112,19 +111,22 @@ ipcMain.handle("get-output-dir", () => {
 });
 
 // Ocean API configuration
-ipcMain.on("save-credentials", async (event, credentials: Credentials) => {
-  store.set("credentials", credentials);
+ipcMain.on("save-credentials", async (event, data: { credentials: Credentials; oceanHost: string }) => {
+  store.set("credentials", data.credentials);
+  store.set("oceanHost", data.oceanHost);
   event.reply("credentials-saved");
 });
 
 ipcMain.on("load-credentials", (event) => {
   const credentials = store.get("credentials");
-  event.reply("credentials-loaded", credentials);
+  const oceanHost = store.get("oceanHost") || "https://staging.cognisantmd.com";
+  event.reply("credentials-loaded", { credentials, oceanHost });
 });
 
 // OAuth2 token management
 async function getAccessToken(): Promise<string> {
   const credentials = store.get("credentials");
+  const oceanHost = store.get("oceanHost") || "https://staging.cognisantmd.com";
   if (!credentials) throw new Error("No credentials found");
 
   const authorization =
@@ -151,6 +153,7 @@ ipcMain.on("download-referrals", async (event, refs: string[]) => {
   try {
     const token = await getAccessToken();
     const outputDir = store.get("outputDir") || app.getPath("downloads");
+    const oceanHost = store.get("oceanHost") || "https://staging.cognisantmd.com";
     const total = refs.length;
     let completed = 0;
     const results = {

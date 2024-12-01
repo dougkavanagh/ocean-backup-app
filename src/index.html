@@ -112,6 +112,16 @@
     <script>
       const { ipcRenderer } = require("electron");
 
+      function updateCredentialsLink() {
+        const host = document.getElementById("oceanHost").value;
+        document.getElementById(
+          "credentialsLink"
+        ).href = `${host}/ocean/portal.html?#/admin/credentials/`;
+      }
+
+      // Initialize credentials link
+      updateCredentialsLink();
+
       // Load saved credentials
       ipcRenderer.send("load-credentials");
       ipcRenderer.on("credentials-loaded", (event, credentials) => {
