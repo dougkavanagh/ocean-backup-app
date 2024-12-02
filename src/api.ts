@@ -74,6 +74,9 @@ export async function downloadReferral(
   fs.writeFileSync(filePath, Buffer.from(buffer));
 }
 
+// Helper function to delay execution
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export async function downloadReferrals(
   refs: string[],
   outputDir: string,
@@ -98,7 +101,13 @@ export async function downloadReferrals(
     }
     completed++;
     progressCallback(completed, total);
+
+    // Add delay before next download (skip delay for the last item)
+    if (completed < total) {
+      // This delay reduces load on the Ocean server and reduces the likelihood of API access being terminated
+      await delay(2000); // 2 second delay
+    }
   }
 
   return results;
-} 
+}
