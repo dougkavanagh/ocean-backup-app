@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { getMainWindow } from "../window";
 import { getOutputDir } from "../config";
-import { downloadReferralPdfs } from "../api";
+import { downloadReferralPdfs } from "../api-client";
 
 export function setupFileHandlers(): void {
   ipcMain.handle("select-input-file", async () => {

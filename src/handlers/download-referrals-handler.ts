@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import { getOutputDir } from "../config";
-import { downloadReferralPdfs } from "../api";
+import { downloadReferralPdfs } from "../api-client";
 
 export function setupDownloadReferralHandler(): void {
   ipcMain.on("download-referrals", async (event, refs: string[]) => {
