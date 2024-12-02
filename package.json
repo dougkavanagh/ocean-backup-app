@@ -7,8 +7,9 @@
     "start": "electron .",
     "build": "tsc",
     "watch": "tsc -w",
+    "clean": "rm -rf dist/",
     "dev": "npm run build && npm start",
-    "make": "npm run build && electron-builder -m && open dist"
+    "make": "npm run clean && npm run build && electron-builder -m && open dist"
   },
   "build": {
     "appId": "com.oceanmd.oceanbackupapp",
@@ -29,7 +30,12 @@
     "files": [
       "dist/**/*",
       "src/index.html"
-    ]
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "asar": true
   },
   "dependencies": {
     "csv-parse": "^5.6.0",
