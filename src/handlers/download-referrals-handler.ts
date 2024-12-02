@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import { getOutputDir } from "../config";
-import { downloadReferrals } from "../api";
+import { downloadReferralPdfs } from "../api";
 
 export function setupDownloadReferralHandler(): void {
   ipcMain.on("download-referrals", async (event, refs: string[]) => {
@@ -8,13 +8,17 @@ export function setupDownloadReferralHandler(): void {
       const outputDir = getOutputDir();
       event.reply("download-start");
 
-      const results = await downloadReferrals(refs, outputDir, (completed, total) => {
-        event.reply("download-progress", {
-          progress: (completed / total) * 100,
-          total,
-          completed,
-        });
-      });
+      const results = await downloadReferralPdfs(
+        refs,
+        outputDir,
+        (completed, total) => {
+          event.reply("download-progress", {
+            progress: (completed / total) * 100,
+            total,
+            completed,
+          });
+        }
+      );
 
       event.reply("download-complete", {
         total: refs.length,
@@ -29,4 +33,4 @@ export function setupDownloadReferralHandler(): void {
       });
     }
   });
-} 
+}

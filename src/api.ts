@@ -41,7 +41,7 @@ export function ensureDirectoryExists(dirPath: string): void {
   }
 }
 
-export async function downloadReferral(
+export async function downloadReferralPdf(
   ref: string,
   outputDir: string,
   token: string
@@ -77,7 +77,7 @@ export async function downloadReferral(
 // Helper function to delay execution
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function downloadReferrals(
+export async function downloadReferralPdfs(
   refs: string[],
   outputDir: string,
   progressCallback: (completed: number, total: number) => void
@@ -94,7 +94,7 @@ export async function downloadReferrals(
 
   for (const ref of refs) {
     try {
-      await downloadReferral(ref, outputDir, token);
+      await downloadReferralPdf(ref, outputDir, token);
       results.successful.push(ref);
     } catch (error: any) {
       results.failed.push({ ref, error: error.message });
