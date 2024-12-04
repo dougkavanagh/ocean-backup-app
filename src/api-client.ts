@@ -58,7 +58,7 @@ export async function downloadReferralPdf(
   }
 
   const response = await fetch(
-    oceanHost + `/svc/fhir/v1/ServiceRequest/${ref}/$letter`,
+    oceanHost + `/svc/fhir/v1/ServiceRequest/${ref}/$letter?attachments=true`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
